@@ -145,17 +145,21 @@ extern "C" xLinkPlatformErrorCode_t getUSBDevices(const deviceDesc_t in_deviceRe
             // Device status
             XLinkError_t status = X_LINK_SUCCESS;
 
-            // Get device state
-            XLinkDeviceState_t state = vidPidToDeviceState.at(vidpid);
-            // Check if compare with state
-            if(in_deviceRequirements.state != X_LINK_ANY_STATE && state != in_deviceRequirements.state){
-                // Current device doesn't match the "filter"
-                continue;
-            }
-
             // Get device name
             std::string devicePath = getLibusbDevicePath(devs[i]);
-            // Check if compare with name, if name is only a hint, don't filter
+
+            // Get device state
+            XLinkDeviceState_t state = vidPidToDeviceState.at(vidpid);
+
+            // Check if compare with state
+            if(in_deviceRequirements.state != X_LINK_ANY_STATE && state != in_deviceRequirements.state){
+                // Quick and dirty way to get state when the device path changes
+                if(!devicePath.empty() && devicePath != in_deviceRequirements.name){
+                    state = X_LINK_BOOTED;
+                } else {
+                    continue;
+                }
+            }
 
             if(!in_deviceRequirements.nameHintOnly){
                 std::string requiredName(in_deviceRequirements.name);
